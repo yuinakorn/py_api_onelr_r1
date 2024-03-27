@@ -1,0 +1,8 @@
+.idea
+.env
+test_main.http
+venv
+__pycache__
+models/__pycache__
+*.bak
+*test*
