@@ -38,6 +38,29 @@ def get_connection():
     return connection
 
 
+
+def read_province():
+    connection = pymysql.connect(host=config_env["DB_HOST"],
+                                 user=config_env["DB_USER"],
+                                 password=config_env["DB_PASSWORD"],
+                                 db=config_env["DB_NAME"],
+                                 charset=config_env["CHARSET"],
+                                 port=int(config_env["DB_PORT"]),
+                                 cursorclass=pymysql.cursors.DictCursor
+                                 )
+
+    with connection.cursor() as cursor:
+        sql = """
+            SELECT code, name_th FROM provinces
+            WHERE code in ("50","51","52","54","55","56","57","58")
+        """
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        connection.close()
+
+        return result
+
+
 def read_hostpitals():
     connection = pymysql.connect(host=config_env["DB_HOST"],
                                  user=config_env["DB_USER"],
@@ -49,9 +72,11 @@ def read_hostpitals():
                                  )
 
     with connection.cursor() as cursor:
-        sql = "SELECT hoscode,hosname FROM chospital " \
-              "WHERE provcode = '51' " \
-              "AND hostype in (5,6,7)"
+        sql = """
+              SELECT provcode as provinceCode,hoscode,hosname FROM chospital 
+              WHERE provcode in ("50","51","52","54","55","56","57","58") 
+              AND hostype in (5,6,7)
+              """
         cursor.execute(sql)
         result = cursor.fetchall()
         connection.close()

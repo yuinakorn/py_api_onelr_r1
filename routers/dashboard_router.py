@@ -11,6 +11,11 @@ from controllers import dashboard_controller, pregs_controller
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 
+@router.get("/provinces/")
+def read_province():
+    return dashboard_controller.read_province()
+
+
 @router.get("/hospitals/")
 def read_hostpitals():
     return dashboard_controller.read_hostpitals()
