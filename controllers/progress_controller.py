@@ -52,11 +52,8 @@ def search(db: Session, request):
     token = request.get("token")
 
     if token_decode(token)['is_valid']:
-        # shorted code
-        hcode = request.get("hcode") if token_decode(token)['token_data']['hosCode'] == '10714' else \
-        token_decode(token)['token_data']['hosCode']
 
-        result = db.query(DbProgress).filter(DbProgress.hcode == hcode,
+        result = db.query(DbProgress).filter(DbProgress.hcode == request.get("hcode"),
                                              DbProgress.cid == request.get("cid"),
                                              DbProgress.an == request.get("an")).all()
         if result is None:
