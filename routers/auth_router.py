@@ -58,3 +58,7 @@ def read_lp_user(request: LoginBase):
 def check_token(request: CheckTokenBase):
     return pregs_controller.token_check(request)
 
+
+@router.post("/hoscode_group/")
+def get_hoscode_group(request: CheckTokenBase):
+    return pregs_controller.hoscode_group(request)

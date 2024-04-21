@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends
 
 from sqlalchemy.orm import Session
 from models.database import get_db
-from models.pregs.pregs_model import PregBase, PregDisplayBase, LoginBase, CreateBase, PregBaseCid, DeleteBase, ProgressBase
+from models.pregs.pregs_model import PregBase, PregDisplayBase, LoginBase, CreateBase, PregBaseCid, DeleteBase, \
+    ProgressBase, MakeConsult
 from controllers import pregs_controller
 
 
@@ -46,4 +47,8 @@ def update_preg(request: CreateBase, db: Session = Depends(get_db)):
 def delete_preg(request: DeleteBase, db: Session = Depends(get_db)):
     return pregs_controller.delete(db, request)
 
+
+@router.post("/consult/")
+def make_consult_preg(request: MakeConsult, db: Session = Depends(get_db)):
+    return pregs_controller.consult(db, request)
 

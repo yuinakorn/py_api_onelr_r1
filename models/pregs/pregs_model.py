@@ -149,7 +149,6 @@ class PregsAllBase(BaseModel):
         orm_mode = True
 
 
-
 class LoginBase(BaseModel):
     token: str
 
@@ -221,3 +220,39 @@ class DbChospital(Base):
     t_pregancy = relationship("DbPreg", back_populates="chospital")
 
 
+class DbConsult(Base):
+    __tablename__ = "t_consult"
+    hoscode_main = Column(String, primary_key=True, index=True)
+    cid = Column(String, primary_key=True, index=True)
+    an = Column(String, primary_key=True, index=True)
+    hoscode_consult = Column(String, primary_key=True, index=True)
+    by_user_cid = Column(String)
+    datetime_created = Column(DateTime, nullable=True)
+    seen = Column(String)
+
+
+class MakeConsult(BaseModel):
+    hoscode_main: str
+    cid: str
+    an: str
+    hoscode_consult: str
+    token: str
+
+    class Config:
+        orm_mode = True
+
+    def get(self, key):
+        return getattr(self, key, None)
+
+
+class CheckPreg(BaseModel):
+    token: str
+    cid: str
+    an: str
+    hoscode: str
+
+    class Config:
+        orm_mode = True
+
+    def get(self, key):
+        return getattr(self, key, None)
