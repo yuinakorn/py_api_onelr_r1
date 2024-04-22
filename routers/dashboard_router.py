@@ -17,6 +17,11 @@ def read_province():
     return dashboard_controller.read_province()
 
 
+@router.post("/province/{hcode}")
+def read_province_by_hcode(hcode: str):
+    return dashboard_controller.read_province_by_hcode(hcode)
+
+
 @router.get("/hospitals/")
 def read_hostpitals():
     return dashboard_controller.read_hostpitals()

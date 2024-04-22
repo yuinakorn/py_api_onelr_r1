@@ -40,7 +40,6 @@ def get_connection():
     return connection
 
 
-
 def read_province():
     connection = pymysql.connect(host=config_env["DB_HOST"],
                                  user=config_env["DB_USER"],
@@ -61,6 +60,38 @@ def read_province():
         connection.close()
 
         return result
+
+
+def read_province_by_hcode(hcode):
+    try:
+        connection = pymysql.connect(host=config_env["DB_HOST"],
+                                     user=config_env["DB_USER"],
+                                     password=config_env["DB_PASSWORD"],
+                                     db=config_env["DB_NAME"],
+                                     charset=config_env["CHARSET"],
+                                     port=int(config_env["DB_PORT"]),
+                                     cursorclass=pymysql.cursors.DictCursor
+                                     )
+
+        with connection.cursor() as cursor:
+            sql = """SELECT p.code,p.name_th FROM chospital h
+                LEFT JOIN provinces p ON h.provcode = p.code
+                WHERE hoscode = %s"""
+
+            cursor.execute(sql, hcode)
+            result = cursor.fetchone()
+            connection.close()
+
+            return {"province_code": result["code"], "province_name": result["name_th"]}
+
+    except pymysql.Error as e:
+        raise HTTPException(500, f"Database error: {e}")
+    except Exception as e:
+        raise HTTPException(500, f"An error occurred: {e}")
+
+
+
+
 
 
 def read_hostpitals():
