@@ -416,8 +416,7 @@ def consult(db: Session, request):
     existing_consult = db.query(DbConsult).filter_by(
         hoscode_main=request.hoscode_main,
         cid=request.cid,
-        an=request.an,
-        seen="N"
+        an=request.an
     ).first()
 
     if existing_consult:
@@ -433,7 +432,8 @@ def consult(db: Session, request):
             an=request.an,
             hoscode_consult=request.hoscode_consult,
             by_user_cid=cid,
-            datetime_created=datetime.now()
+            datetime_created=datetime.now(),
+            seen='N'
         )
         db.add(new_consult)
 
