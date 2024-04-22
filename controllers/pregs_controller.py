@@ -416,7 +416,8 @@ def consult(db: Session, request):
     existing_consult = db.query(DbConsult).filter_by(
         hoscode_main=request.hoscode_main,
         cid=request.cid,
-        an=request.an
+        an=request.an,
+        seen="N"
     ).first()
 
     if existing_consult:
