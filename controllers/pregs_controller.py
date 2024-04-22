@@ -68,13 +68,16 @@ def line_notify(token, new_preg):
     msg = f"\n มีการลงทะเบียนคลอดรายใหม่จาก: *{hosname}* \n " \
           f"HN: {new_preg.hn} \n " \
           f"AN: {new_preg.an} \n " \
-          f"อายุ: {new_preg.age_y} ปี \n " \
           f"{cpd_icon}CPD Risk: {new_preg.cpd_risk_score} \n " \
-          f"Hematocrit: {new_preg.hematocrit} % \n " \
-          f"ยอดมดลูก: {new_preg.fundal_height} ซม. \n " \
+          f"อายุมารดา: {new_preg.age_y} ปี \n " \
+          f"ส่วนสูงมารดา: {new_preg.height} ซม. \n " \
+          f"จำนวนคลอดบุตร: {new_preg.parity} \n " \
+          f"น้ำหนักที่เพิ่มขึ้น: {new_preg.weight_gain} กก. \n " \
+          f"ขนาดยอดมดลูก: {new_preg.fundal_height} ซม. \n " \
+          f"HCT: {new_preg.hematocrit} % \n " \
           f"น้ำหนักเด็ก(U/S): {new_preg.ultrasound} กรัม \n " \
           f"วันที่แอดมิท {admit_date} น. \n \n " \
-          f"กรุณาเปิดลิงค์ในคอมฯ: {config_env['FRONTEND_URL']}/#/patient/{hoscode_to_find}/{new_preg.an}/{new_preg.cid}"
+          f"กรุณาเปิดลิงค์ในคอม: {config_env['FRONTEND_URL']}/#/patient/{hoscode_to_find}/{new_preg.an}/{new_preg.cid}"
     payload = {"message": msg}
     headers = {"Authorization": "Bearer " + line_token}
     httpx.post(url, data=payload, headers=headers)
@@ -111,14 +114,12 @@ def line_notify_consult(hoscode_main, cid, an):
               f"HN: {result['hn']} \n" \
               f"AN: {result['an']} \n" \
               f"{cpd_icon} CPD Risk: {result['cpd_risk_score']} \n" \
-              f"อายุ: {result['age_y']} ปี \n" \
-              f"ครรภ์ที่: {result['gravida']} \n" \
-              f"อายุครรภ์: {result['ga']} w \n" \
-              f"จำนวนการตรวจ ANC: {result['no_of_anc']} \n" \
+              f"อายุมารดา: {result['age_y']} ปี \n" \
+              f"ส่วนสูงมารดา: {result['height']} ซม. \n" \
+              f"จำนวนคลอดบุตร: {result['parity']} \n" \
               f"น้ำหนักเพิ่มขึ้น: {result['weight_gain']} กก. \n" \
-              f"ส่วนสูง: {result['height']} ซม. \n" \
-              f"ยอดมดลูก: {result['fundal_height']} ซม. \n" \
-              f"Hematocrit: {result['hematocrit']} % \n" \
+              f"ขนาดยอดมดลูก: {result['fundal_height']} ซม. \n" \
+              f"HCT: {result['hematocrit']} % \n" \
               f"น้ำหนักเด็ก(U/S): {result['ultrasound']} กรัม \n" \
               f"วันที่แอดมิท: {result['admit_date']} \n \n" \
               f"กรุณาเปิดลิงค์ในคอมฯ: {config_env['FRONTEND_URL']}/#/patient/{hoscode_main}/{an}/{cid}"
