@@ -74,7 +74,7 @@ def line_notify(token, new_preg):
           f"ยอดมดลูก: {new_preg.fundal_height} ซม. \n " \
           f"น้ำหนักเด็ก(U/S): {new_preg.ultrasound} กรัม \n " \
           f"วันที่แอดมิท {admit_date} น. \n \n " \
-          f"เปิดลิงค์: {config_env['FRONTEND_URL']}/#/patient/{hoscode_to_find}/{new_preg.an}/{new_preg.cid}"
+          f"กรุณาเปิดลิงค์ในคอมฯ: {config_env['FRONTEND_URL']}/#/patient/{hoscode_to_find}/{new_preg.an}/{new_preg.cid}"
     payload = {"message": msg}
     headers = {"Authorization": "Bearer " + line_token}
     httpx.post(url, data=payload, headers=headers)
