@@ -106,8 +106,8 @@ def line_notify_consult(hoscode_main, cid, an):
         elif result['cpd_risk_score'] > 9.5:
             cpd_icon = "🔴"
 
-        msg = f"มีการปรึกษาคลอดรายใหม่จาก: {result['hosname_main']} \n" \
-              f"มายัง: {result['hosname_consult']} \n" \
+        msg = f"มีการปรึกษาคลอดรายใหม่จาก: *{result['hosname_main']}* \n" \
+              f"มายัง: *{result['hosname_consult']}* \n" \
               f"HN: {result['hn']} \n" \
               f"AN: {result['an']} \n" \
               f"{cpd_icon} CPD Risk: {result['cpd_risk_score']} \n" \
