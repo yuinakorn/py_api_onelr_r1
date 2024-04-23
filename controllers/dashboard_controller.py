@@ -117,7 +117,8 @@ def read_hostpitals():
         return result
 
 
-def read_dashboard_all():
+def read_dashboard_all(request):
+    provcode = request.get("provcode")
     # connection = get_connection()
     connection = pymysql.connect(host=config_env["DB_HOST"],
                                  user=config_env["DB_USER"],
@@ -128,17 +129,18 @@ def read_dashboard_all():
                                  cursorclass=pymysql.cursors.DictCursor
                                  )
     with connection.cursor() as cursor:
-        sql = "SELECT hcode,chospital.hosname as hosname, " \
-              "count(if(cpd_risk_score < 5,hn,NULL)) as green, " \
-              "count(if(cpd_risk_score >= 5 AND cpd_risk_score <= 9.5,hn,NULL)) as yellow, " \
-              "count(if(cpd_risk_score >=10,hn,NULL)) as red, " \
-              "SUBDATE(CURRENT_DATE,INTERVAL 7 DAY) as subdate, " \
-              "CURRENT_DATE as currentdate " \
-              "FROM t_pregancy " \
-              "INNER JOIN chospital on chospital.hoscode = t_pregancy.hcode " \
-              "WHERE left(admit_date,10) BETWEEN SUBDATE(CURRENT_DATE,INTERVAL 7 DAY) AND CURRENT_DATE " \
-              "GROUP BY t_pregancy.hcode"
-        cursor.execute(sql)
+        sql = f"""SELECT hcode,chospital.hosname as hosname, 
+              count(if(cpd_risk_score < 5,hn,NULL)) as green, 
+              count(if(cpd_risk_score >= 5 AND cpd_risk_score <= 9.5,hn,NULL)) as yellow, 
+              count(if(cpd_risk_score >=10,hn,NULL)) as red, 
+              SUBDATE(CURRENT_DATE,INTERVAL 7 DAY) as subdate, 
+              CURRENT_DATE as currentdate 
+              FROM t_pregancy 
+              INNER JOIN chospital on chospital.hoscode = t_pregancy.hcode 
+              WHERE left(admit_date,10) BETWEEN SUBDATE(CURRENT_DATE,INTERVAL 7 DAY) AND CURRENT_DATE 
+              AND chospital.provcode = %s
+              GROUP BY t_pregancy.hcode"""
+        cursor.execute(sql, provcode)
         result = cursor.fetchall()
         connection.close()
 

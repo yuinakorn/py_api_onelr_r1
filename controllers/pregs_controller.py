@@ -482,9 +482,8 @@ def hoscode_group(request):
                 sql2 = f"""
                             SELECT * FROM hos_main_group
                             WHERE hoscode_main = %s
-                            AND is_node = 'Y'
                         """
-                print(sql2 % hoscode)
+                # print(sql2 % hoscode)
                 cursor.execute(sql2, hoscode)
                 # ถ้าใช่ node จะได้ hoscode ของลูกข่ายในอำเภอ
                 result2 = cursor.fetchone()

@@ -1,7 +1,9 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 
 from sqlalchemy.orm import Session
+
+from models.dashboard.dashboard_model import ProvcodeBase
 from models.database import get_db
 from models.pregs.pregs_model import PregBase, PregDisplayBase, LoginBase, CreateBase, PregsAllBase, CheckPreg
 from controllers import dashboard_controller, pregs_controller
@@ -33,9 +35,13 @@ def read_preg_all(request: LoginBase):
     return pregs_controller.read_preg_all(request)
 
 
+# @router.post("/hospitals/")
+# def read_dashboard_all(request_body: dict = Body(...)):
+#     return (dashboard_controller.read_dashboard_all(request_body)
+
 @router.post("/hospitals/")
-def read_dashboard_all():
-    return dashboard_controller.read_dashboard_all()
+def read_dashboard_all(request: ProvcodeBase):
+    return dashboard_controller.read_dashboard_all(request)
 
 
 def validate_hcode(hcode: str):
