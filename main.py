@@ -19,7 +19,8 @@ config_env = dotenv_values(".env")
 # )
 
 origins = [
-    config_env["CORS_ORIGIN1"]
+    config_env["CORS_ORIGIN1"],
+    config_env["CORS_ORIGIN2"],
 ]
 
 app.add_middleware(
