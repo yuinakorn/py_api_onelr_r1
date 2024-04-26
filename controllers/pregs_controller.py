@@ -261,11 +261,14 @@ def create(db: Session, request):
     if token_decode(token)['is_valid']:
         current_date = datetime.now()
         image = str(request.image).replace("\n", "")
+        if image is 'None':
+            image = None
+
         new_preg = DbPreg(
             hcode=token_decode(token)['token_data']['hosCode'],
             cid=request.cid,
-            hn=request.hn,
-            an=request.an,
+            hn="".join(request.hn.split("/")),
+            an="".join(request.an.split("/")),
             admit_date=request.admit_date,
             title=request.title,
             pname=request.pname,
