@@ -24,8 +24,13 @@ def read_preg_by_an(request: PregBase, db: Session = Depends(get_db)):
 
 
 @router.post("/his/search/")
-def read_his_preg_by_cid(request: PregBaseCid):
-    return pregs_controller.his_search(request)
+async def read_his_preg_by_hn(request: PregBaseCid):
+    return await pregs_controller.his_search(request)
+
+
+@router.post("/his/search_img/")
+async def read_his_preg_by_hn(request: PregBaseCid):
+    return await pregs_controller.his_search_img(request)
 
 
 # @router.post("/check/token/")

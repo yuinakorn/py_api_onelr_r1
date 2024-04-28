@@ -211,28 +211,79 @@ def search(db: Session, request):
                             detail={"status": "error", "message": "You are not allowed!!"})
 
 
-def his_search(request):
+async def his_search(request):
     token = request.get("token")
 
     if token_decode(token)['is_valid']:
-        auth = {}
         api_url = f"{config_env['HIS_URL']}/person_anc/{request.get('hcode')}?cid={request.get('cid')}"
-        response = requests.get(api_url, auth=auth)
-        result = response.json()
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(api_url, timeout=7)  # กำหนดเวลาในการรอ response 7 วินาที
+                response.raise_for_status()  # Raise HTTPError for non-2xx responses
+                result = response.json()
 
-        if response is None:
+                if response is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND, detail={
+                            "status": "error",
+                            "message": f"ไม่พบข้อมูลของ an {request.get('an')} ในระบบ"
+                        }
+                    )
+                else:
+                    return result
+        except httpx.ReadTimeout:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail={
-                    "status": "error",
-                    "message": f"ไม่พบข้อมูลของ an {request.get('an')} ในระบบ"
-                }
+                status_code=status.HTTP_408_REQUEST_TIMEOUT,
+                detail={"status": "error", "message": f"Request timed out or query error"}
             )
-        else:
-            return result
-
+        except httpx.HTTPError as http_err:
+            raise HTTPException(
+                status_code=http_err.response.status_code,
+                detail={"status": "error", "message": http_err.response.text}
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={"status": "error", "message": str(e)}
+            )
     else:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail={"status": "error", "message": "You are not allowed!!"})
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"status": "error", "message": "You are not allowed!!"}
+        )
+
+
+async def his_search_img(request):
+    token = request.get("token")
+
+    if token_decode(token)['is_valid']:
+        api_url = f"{config_env['HIS_URL']}/person_anc_img/{request.get('hcode')}?cid={request.get('cid')}"
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(api_url, timeout=7)  # กำหนดเวลาในการรอ response 7 วินาที
+                response.raise_for_status()  # Raise HTTPError for non-2xx responses
+                result = response.json()[0]
+                return result
+        except httpx.ReadTimeout:
+            raise HTTPException(
+                status_code=status.HTTP_408_REQUEST_TIMEOUT,
+                detail={"status": "error", "message": f"Request timed out or query error"}
+            )
+        except httpx.HTTPError as http_err:
+            raise HTTPException(
+                status_code=http_err.response.status_code,
+                detail={"status": "error", "message": http_err.response.text}
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={"status": "error", "message": str(e)}
+            )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"status": "error", "message": "You are not allowed!!"}
+        )
 
 
 def token_check(request):
