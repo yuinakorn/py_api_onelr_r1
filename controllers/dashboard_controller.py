@@ -6,6 +6,7 @@ import pymysql
 from dotenv import dotenv_values
 from datetime import datetime
 
+from models.preg_crypto.pregs_crypto_model import DecryptInput
 from models.pregs.pregs_model import DbConsult
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -13,6 +14,8 @@ from sqlalchemy.orm import Session
 
 from fastapi import HTTPException, status
 from fastapi.responses import JSONResponse
+
+from controllers.crypto_controller import decrypt_data, encrypt_data
 
 config_env = dotenv_values(".env")
 
@@ -38,6 +41,27 @@ def get_connection():
                                  cursorclass=pymysql.cursors.DictCursor
                                  )
     return connection
+
+
+async def decrypt_result(result):
+    decrypted_predata = []
+    for data in result:
+        data["cid_crypto"] = data["cid"]
+        if data["cid"] and data["pname"] and data["lname"] and data["s_id"]:
+            encrypted_data = DecryptInput(
+            cid=data["cid"],
+            pname=data["pname"],
+            lname=data["lname"],
+            salt=data["s_id"]
+        )
+        decrypted_data = await decrypt_data(encrypted_data)
+        # Assign decrypted values back to the data object or a new object
+        data["cid"] = decrypted_data["cid"]
+        data["pname"] = decrypted_data["pname"]
+        data["lname"] = decrypted_data["lname"]
+        # append ข้อมูลที่เข้ารหัสแล้วเข้าไปใน decrypted_predata
+        decrypted_predata.append(data)
+    return decrypted_predata
 
 
 def read_province():
@@ -88,10 +112,6 @@ def read_province_by_hcode(hcode):
         raise HTTPException(500, f"Database error: {e}")
     except Exception as e:
         raise HTTPException(500, f"An error occurred: {e}")
-
-
-
-
 
 
 def read_hostpitals():
@@ -154,46 +174,77 @@ class DateTimeEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def read_hospital_by_hcode(hcode):
-    try:
-        connection = get_connection()
-        with connection.cursor() as cursor:
-            sql = "SELECT chospital.hosname, t_pregancy.*,hos_main_group.hosname hosname_consult FROM t_pregancy " \
-                  "INNER JOIN chospital ON t_pregancy.hcode = chospital.hoscode " \
-                  "LEFT JOIN t_consult ON t_pregancy.hcode = t_consult.hoscode_main AND t_pregancy.cid = t_consult.cid AND t_pregancy.an = t_consult.an " \
-                  "LEFT JOIN hos_main_group ON t_consult.hoscode_consult = hos_main_group.hoscode_main " \
-                  "WHERE hcode = %s " \
-                  "AND left(admit_date,10) BETWEEN SUBDATE(CURRENT_DATE,INTERVAL 7 DAY) AND CURRENT_DATE"
+# def read_hospital_by_hcode(hcode):
+#     try:
+#         connection = get_connection()
+#         with connection.cursor() as cursor:
+#             sql = """SELECT chospital.hosname, t_pregancy.*,hos_main_group.hosname hosname_consult FROM t_pregancy 
+#                   INNER JOIN chospital ON t_pregancy.hcode = chospital.hoscode 
+#                   LEFT JOIN t_consult ON t_pregancy.hcode = t_consult.hoscode_main AND t_pregancy.cid = t_consult.cid AND t_pregancy.an = t_consult.an 
+#                   LEFT JOIN hos_main_group ON t_consult.hoscode_consult = hos_main_group.hoscode_main 
+#                   WHERE hcode = %s 
+#                   AND left(admit_date,10) BETWEEN SUBDATE(CURRENT_DATE,INTERVAL 7 DAY) AND CURRENT_DATE"""
 
-            cursor.execute(sql, hcode)
-            result = cursor.fetchall()
-        connection.close()
+#             cursor.execute(sql, hcode)
+#             result = cursor.fetchall()
+#             # loop for decyrpt data
 
-        return result
-    except pymysql.Error as e:
-        raise HTTPException(500, f"Database error: {e}")
-    except Exception as e:
-        raise HTTPException(500, f"An error occurred: {e}")
+            
+#         connection.close()
+
+#         return result
+#     except pymysql.Error as e:
+#         raise HTTPException(500, f"Database error: {e}")
+#     except Exception as e:
+#         raise HTTPException(500, f"An error occurred: {e}")
 
 
-def read_patient_by_an(request):
+async def read_hospital_by_hcode(request, hcode):
     token = request.get("token")
     if token_decode(token)['is_valid']:
         try:
             connection = get_connection()
             with connection.cursor() as cursor:
-                sql = """
-                        SELECT t_pregancy.*,t_consult.hoscode_consult,chospital.hosname FROM t_pregancy 
+                sql = """SELECT chospital.hosname, t_pregancy.*,hos_main_group.hosname hosname_consult FROM t_pregancy 
+                    INNER JOIN chospital ON t_pregancy.hcode = chospital.hoscode 
+                    LEFT JOIN t_consult ON t_pregancy.hcode = t_consult.hoscode_main AND t_pregancy.cid = t_consult.cid AND t_pregancy.an = t_consult.an 
+                    LEFT JOIN hos_main_group ON t_consult.hoscode_consult = hos_main_group.hoscode_main 
+                    WHERE hcode = %s 
+                    AND left(admit_date,10) BETWEEN SUBDATE(CURRENT_DATE,INTERVAL 7 DAY) AND CURRENT_DATE"""
+
+                cursor.execute(sql, hcode)
+                result = cursor.fetchall()
+                
+                decrypted_data = await decrypt_result(result)
+
+            return decrypted_data
+        
+        except pymysql.Error as e:
+            raise HTTPException(500, f"Database error: {e}")
+        except Exception as e:
+            raise HTTPException(500, f"An error occurred: {e}")
+
+
+async def read_patient_by_an(request):
+    token = request.get("token")
+    if token_decode(token)['is_valid']:
+        try:
+            connection = get_connection()
+            with connection.cursor() as cursor:
+                sql = """SELECT t_pregancy.*,t_consult.hoscode_consult,chospital.hosname FROM t_pregancy 
                         LEFT JOIN t_consult ON t_pregancy.hcode = t_consult.hoscode_main AND t_pregancy.an = t_consult.an
                         LEFT JOIN chospital ON t_consult.hoscode_consult = chospital.hoscode
                         WHERE t_pregancy.hcode = %s AND t_pregancy.an = %s
                         ORDER BY t_consult.id DESC 
-                        LIMIT 1
-                    """
+                        """
                 cursor.execute(sql, (request.get("hoscode"), request.get("an")))
-                result = cursor.fetchone()
-                connection.close()
-                return result
+                
+                result = cursor.fetchall()
+                
+                
+                decrypted_data = await decrypt_result(result)
+
+                return decrypted_data
 
         except pymysql.Error as e:
             raise HTTPException(500, f"Database error: {e}")
@@ -305,7 +356,7 @@ def read_hospital_name(hcode):
         raise HTTPException(500, f"An error occurred: {e}")
 
 
-def read_pregs_consult(request):
+async def read_pregs_consult(request):
     token = request.get("token")
     if token_decode(token)['is_valid']:
         hoscode = token_decode(token)['token_data']['hosCode']
@@ -320,9 +371,11 @@ def read_pregs_consult(request):
                         ORDER BY p.admit_date DESC"""
                 cursor.execute(sql, hoscode)
                 result = cursor.fetchall()
-                connection.close()
+                
+                decrypted_data = await decrypt_result(result)
 
-                return result
+            return decrypted_data
+        
         except pymysql.Error as e:
             raise HTTPException(500, f"Database error: {e}")
         except Exception as e:
@@ -354,3 +407,22 @@ def update_consulted(request, db: Session):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail={"status": "error", "message": "Token is invalid!!"})
 
+
+def read_version(request):
+    token = request.get("token")
+    if token_decode(token)['is_valid']:
+        try:
+            connection = get_connection()
+            with connection.cursor() as cursor:
+                sql = "SELECT * FROM version"
+                cursor.execute(sql)
+                result = cursor.fetchall()
+
+                return result
+        except pymysql.Error as e:
+            raise HTTPException(500, f"Database error: {e}")
+        except Exception as e:
+            raise HTTPException(500, f"An error occurred: {e}")
+    else:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail={"status": "error", "message": "Token is invalid!!"})

@@ -31,8 +31,8 @@ def read_hostpitals():
 
 # เฉพาะแม่ข่าย
 @router.post("/patients/")
-def read_preg_all(request: LoginBase):
-    return pregs_controller.read_preg_all(request)
+async def read_preg_all(request: LoginBase):
+    return await pregs_controller.read_preg_all(request)
 
 
 # @router.post("/hospitals/")
@@ -51,13 +51,13 @@ def validate_hcode(hcode: str):
 
 
 @router.post("/hospital/{hcode}")
-def read_hospital_by_hcode(hcode: str = Depends(validate_hcode)):
-    return dashboard_controller.read_hospital_by_hcode(hcode)
+async def read_hospital_by_hcode(request: LoginBase, hcode: str = Depends(validate_hcode)):
+    return await dashboard_controller.read_hospital_by_hcode(request, hcode)
 
 
 @router.post("/patient/")
-def read_patient_by_an(request: CheckPreg):
-    return dashboard_controller.read_patient_by_an(request)
+async def read_patient_by_an(request: CheckPreg):
+    return await dashboard_controller.read_patient_by_an(request)
 
 
 # @router.post("/patient/{hcode}/{an}")
@@ -81,8 +81,8 @@ def read_hospital_name(hcode: str = Depends(validate_hcode)):
 
 
 @router.post("/pregs_consult/")
-def read_pregs_consult(request: CheckTokenBase):
-    return dashboard_controller.read_pregs_consult(request)
+async def read_pregs_consult(request: CheckTokenBase):
+    return await dashboard_controller.read_pregs_consult(request)
 
 
 @router.get("/notify_count/{hcode}")
@@ -93,3 +93,9 @@ def read_notify_count(hcode: str, db: Session = Depends(get_db)):
 @router.post("/consulted/")
 def update_consulted(request: LoginBase, db: Session = Depends(get_db)):
     return dashboard_controller.update_consulted(request, db)
+
+
+@router.post("/version/")
+def read_version(request: LoginBase):
+    return dashboard_controller.read_version(request)
+

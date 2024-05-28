@@ -12,7 +12,8 @@ from typing import Optional
 class DbPreg(Base):
     __tablename__ = "t_pregancy"
     hcode = Column(String, primary_key=True, index=True)
-    cid = Column(String, ForeignKey('chospital.hoscode'), primary_key=True, index=True)
+    # cid = Column(String, ForeignKey('chospital.hoscode'), primary_key=True, index=True)
+    cid = Column(String, primary_key=True, index=True)
     hn = Column(String)
     an = Column(String, primary_key=True, index=True)
     admit_date = Column(DateTime, nullable=True)
@@ -41,8 +42,9 @@ class DbPreg(Base):
     refer_status = Column(String, nullable=True)
     refer_out_status = Column(String, nullable=True)
     image = Column(String, nullable=True)
+    s_id = Column(String, nullable=True)
 
-    chospital = relationship("DbChospital", back_populates="t_pregancy")
+    # chospital = relationship("DbChospital", back_populates="t_pregancy")
 
 
 class ProgressBase(BaseModel):
@@ -79,12 +81,15 @@ class PregBaseCid(BaseModel):
 class PregDisplayBase(BaseModel):
     hcode: str
     cid: str
+    cid_crypto: str
     hn: str
     an: str
     admit_date: Optional[datetime] = None
     title: Optional[str] = None
     pname: str
+    pname_crypto: str
     lname: str
+    lname_crypto: str
     age_y: str
     gravida: str
     parity: str
@@ -217,7 +222,7 @@ class DbChospital(Base):
     hoscode = Column(String, primary_key=True, index=True)
     hosname = Column(String, nullable=True)
 
-    t_pregancy = relationship("DbPreg", back_populates="chospital")
+    # t_pregancy = relationship("DbPreg", back_populates="chospital")
 
 
 class DbConsult(Base):
@@ -250,6 +255,80 @@ class CheckPreg(BaseModel):
     cid: str
     an: str
     hoscode: str
+
+    class Config:
+        orm_mode = True
+
+    def get(self, key):
+        return getattr(self, key, None)
+
+
+class DbMessage(Base):
+    __tablename__ = "t_message"
+    id = Column(Integer, primary_key=True, index=True)
+    hoscode = Column(String, primary_key=True, index=True)
+    cid = Column(String, primary_key=True, index=True)
+    an = Column(String, primary_key=True, index=True)
+    message = Column(String)
+    doctor_name = Column(String)
+    datetime_created = Column(DateTime, nullable=True)
+        
+
+class CreateMessage(BaseModel):
+    token: str
+    hn: str
+    an: str
+    hcode: str
+    hname: str
+    message: str
+    doctor_name: str
+
+    class Config:
+        orm_mode = True
+
+    def get(self, key):
+        return getattr(self, key, None)
+    
+    
+class ReadMessage(BaseModel):
+    token: str
+    an: str
+    hn: str
+    hcode: str
+
+    class Config:
+        orm_mode = True
+
+    def get(self, key):
+        return getattr(self, key, None)
+
+
+class UploadBase(BaseModel):
+    cid: str
+    an: str
+    hoscode: str
+
+    def get(self, key):
+        return getattr(self, key, None)
+
+
+class CryptoBase(BaseModel):
+    cid: str
+    pname: str
+    lname: str
+
+    class Config:
+        orm_mode = True
+
+    def get(self, key):
+        return getattr(self, key, None)
+
+
+class DecryptBase(BaseModel):
+    encrypted_cid: str
+    encrypted_pname: str
+    encrypted_lname: str
+    s_id: str
 
     class Config:
         orm_mode = True
